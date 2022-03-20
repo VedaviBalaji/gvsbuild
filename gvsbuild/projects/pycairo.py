@@ -15,14 +15,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-import os
-
+from gvsbuild.utils.base_builders import Meson
 from gvsbuild.utils.base_expanders import Tarball
 from gvsbuild.utils.base_project import Project, project_add
 
 
 @project_add
-class Pycairo(Tarball, Project):
+class Pycairo(Tarball, Meson):
     def __init__(self):
         Project.__init__(
             self,
@@ -36,18 +35,10 @@ class Pycairo(Tarball, Project):
         )
 
     def build(self):
-        cairo_inc = os.path.join(self.builder.gtk_dir, "include", "cairo")
-        self.builder.mod_env("INCLUDE", cairo_inc)
-        self.push_location(self.build_dir)
-        self.exec_vs(r"%(python_dir)s\python.exe setup.py install")
-        if self.builder.opts.py_egg:
-            self.exec_vs(r"%(python_dir)s\python.exe setup.py bdist_egg")
+        Meson.build(self)
         if self.builder.opts.py_wheel:
-            self.exec_vs(r"%(python_dir)s\python.exe setup.py bdist_wheel")
-        if self.builder.opts.py_egg or self.builder.opts.py_wheel:
+            self.exec_vs(r"%(python_dir)s\python.exe -m build")
             self.install_dir("dist", "python")
         self.install(r".\COPYING share\doc\pycairo")
         self.install(r".\COPYING-LGPL-2.1 share\doc\pycairo")
         self.install(r".\COPYING-MPL-1.1 share\doc\pycairo")
-        self.install_pc_files()
-        self.pop_location()
